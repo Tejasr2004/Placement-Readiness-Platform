@@ -5,513 +5,352 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KodNest — Placement Readiness Platform</title>
-    <meta name="description" content="Practice, assess, and prepare for your dream job." />
-
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet" />
-
-    <!-- Tailwind CSS (CDN — fine for dev/prototype) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: 'hsl(245, 58%, 96%)',
-                            100: 'hsl(245, 58%, 90%)',
-                            200: 'hsl(245, 58%, 80%)',
-                            300: 'hsl(245, 58%, 70%)',
-                            400: 'hsl(245, 58%, 60%)',
-                            500: 'hsl(245, 58%, 51%)',
-                            600: 'hsl(245, 58%, 43%)',
-                            700: 'hsl(245, 58%, 35%)',
-                            800: 'hsl(245, 58%, 27%)',
-                            900: 'hsl(245, 58%, 19%)',
-                        },
-                        surface: '#ffffff',
-                        background: '#f8f9fc',
-                        text: '#1a1a2e',
-                        'text-muted': '#6b7280',
-                        border: '#e5e7eb',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                },
-            },
+                        primary: { 50: 'hsl(245,58%,96%)', 100: 'hsl(245,58%,90%)', 200: 'hsl(245,58%,80%)', 300: 'hsl(245,58%,70%)', 400: 'hsl(245,58%,60%)', 500: 'hsl(245,58%,51%)', 600: 'hsl(245,58%,43%)', 700: 'hsl(245,58%,35%)', 800: 'hsl(245,58%,27%)', 900: 'hsl(245,58%,19%)' },
+                        surface: '#ffffff', background: '#f8f9fc', text: '#1a1a2e', 'text-muted': '#6b7280', border: '#e5e7eb',
+                    }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
         }
     </script>
-
-    <!-- React 18 (CDN) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+    <script src="engine.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box
         }
 
         body {
             font-family: 'Inter', system-ui, sans-serif;
             background: #f8f9fc;
-            color: #1a1a2e;
+            color: #1a1a2e
         }
 
         ::selection {
             background: hsl(245, 58%, 51%);
-            color: #fff;
+            color: #fff
         }
 
         html {
-            scroll-behavior: smooth;
+            scroll-behavior: smooth
         }
     </style>
 </head>
 
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback } = React;
 
-        /* ============================================================
-           SVG ICONS (inline — no external dependency)
-           ============================================================ */
-        const Icons = {
+        /* ---- SVG Icons ---- */
+        const I = {
             Code: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>,
             Video: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>,
             BarChart3: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>,
             ArrowRight: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>,
             LayoutDashboard: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>,
-            ClipboardCheck: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="m9 14 2 2 4-4" /></svg>,
+            ClipboardCheck: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="m9 14 2 2 4-4" /></svg>,
             BookOpen: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>,
             User: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
-            Calendar: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+            Calendar: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
             Clock: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
             Flame: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>,
             Target: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>,
-            TrendingUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
+            Trash: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>,
+            Search: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>,
+            FileText: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 13H8" /><path d="M16 17H8" /><path d="M16 13h-2" /></svg>,
+            Check: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+            Download: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
+            Copy: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>,
         };
 
-        /* ============================================================
-           HASH ROUTER
-           ============================================================ */
-        function useRoute() {
-            const [route, setRoute] = useState(window.location.hash.slice(1) || '/');
-            useEffect(() => {
-                const h = () => setRoute(window.location.hash.slice(1) || '/');
-                window.addEventListener('hashchange', h);
-                return () => window.removeEventListener('hashchange', h);
-            }, []);
-            return route;
+        /* ---- Router ---- */
+        function useRoute() { const [r, s] = useState(window.location.hash.slice(1) || '/'); useEffect(() => { const h = () => s(window.location.hash.slice(1) || '/'); window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h) }, []); return r }
+        function nav(p) { window.location.hash = p }
+
+        /* ---- Shared ---- */
+        function Card({ children, className = '' }) { return <div className={"bg-white border border-border rounded-2xl p-6 " + className}>{children}</div> }
+        function CardTitle({ children }) { return <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">{children}</h3> }
+        function Badge({ children, color = 'primary' }) { const c = { primary: 'bg-primary-50 text-primary-600 border-primary-200', green: 'bg-emerald-50 text-emerald-700 border-emerald-200', amber: 'bg-amber-50 text-amber-700 border-amber-200', red: 'bg-red-50 text-red-700 border-red-200', gray: 'bg-gray-100 text-gray-600 border-gray-200' }; return <span className={"inline-block px-2.5 py-0.5 rounded-full text-xs font-medium border " + (c[color] || c.primary)}>{children}</span> }
+
+        /* ---- SVG circular score ---- */
+        function ScoreRing({ score, size = 160 }) {
+            const r = size * 0.4, circ = 2 * Math.PI * r, off = circ - (score / 100) * circ; return (
+                <div className="relative" style={{ width: size, height: size }}>
+                    <svg className="w-full h-full" viewBox={"0 0 " + size + " " + size} style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(245,58%,96%)" strokeWidth={size * 0.06} />
+                        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={score >= 70 ? 'hsl(145,40%,45%)' : score >= 50 ? 'hsl(40,80%,50%)' : 'hsl(245,58%,51%)'} strokeWidth={size * 0.06} strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={off} style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }} />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="font-bold text-text" style={{ fontSize: size * 0.22 }}>{score}</span>
+                        <span className="text-text-muted" style={{ fontSize: size * 0.08 }}>/ 100</span>
+                    </div>
+                </div>
+            )
         }
-        function navigate(path) { window.location.hash = path; }
 
         /* ============================================================
            LANDING PAGE
            ============================================================ */
-        const features = [
-            { icon: 'Code', title: 'Practice Problems', desc: 'Solve curated coding challenges across data structures, algorithms, and system design.' },
-            { icon: 'Video', title: 'Mock Interviews', desc: 'Experience realistic interview simulations with detailed feedback and analysis.' },
-            { icon: 'BarChart3', title: 'Track Progress', desc: 'Visualize your growth with detailed analytics on speed, accuracy, and consistency.' },
-        ];
-
+        const features = [{ icon: 'Code', title: 'Practice Problems', desc: 'Solve curated coding challenges across data structures, algorithms, and system design.' }, { icon: 'Video', title: 'Mock Interviews', desc: 'Experience realistic interview simulations with detailed feedback and analysis.' }, { icon: 'BarChart3', title: 'Track Progress', desc: 'Visualize your growth with detailed analytics on speed, accuracy, and consistency.' }];
         function LandingPage() {
             return (
                 <div className="min-h-screen flex flex-col">
-                    <nav className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-                        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                            <span className="text-xl font-bold tracking-tight text-primary-600">Placement Prep</span>
-                            <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-primary-500 hover:text-primary-700 transition-colors cursor-pointer">Sign In</button>
-                        </div>
-                    </nav>
-
-                    <section className="flex-1 flex items-center justify-center px-6 py-24 lg:py-32">
-                        <div className="max-w-2xl text-center">
-                            <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-tight text-text">
-                                Ace Your <span className="text-primary-500">Placement</span>
-                            </h1>
-                            <p className="mt-6 text-lg sm:text-xl leading-relaxed text-text-muted max-w-xl mx-auto">
-                                Practice, assess, and prepare for your dream job — all in one platform built for focused, confident preparation.
-                            </p>
-                            <button onClick={() => navigate('/dashboard')}
-                                className="mt-10 inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary-500 text-white font-semibold text-base shadow-lg shadow-primary-500/25 hover:bg-primary-600 hover:shadow-primary-500/35 transition-all duration-200 cursor-pointer">
-                                Get Started
-                                <Icons.ArrowRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </section>
-
-                    <section className="px-6 py-20 bg-white border-t border-border">
-                        <div className="max-w-5xl mx-auto">
-                            <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-primary-500 mb-2">Features</h2>
-                            <p className="text-center text-2xl sm:text-3xl font-bold text-text mb-14">Everything you need to land your dream role</p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {features.map(f => {
-                                    const Ic = Icons[f.icon];
-                                    return (
-                                        <div key={f.title} className="group p-8 rounded-2xl border border-border bg-background hover:border-primary-300 hover:shadow-md hover:shadow-primary-500/5 transition-all duration-200">
-                                            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center mb-5 group-hover:bg-primary-100 transition-colors duration-200">
-                                                <Ic className="w-6 h-6 text-primary-500" />
-                                            </div>
-                                            <h3 className="text-lg font-semibold text-text mb-2">{f.title}</h3>
-                                            <p className="text-sm leading-relaxed text-text-muted">{f.desc}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-
-                    <footer className="border-t border-border bg-white py-8">
-                        <p className="text-center text-sm text-text-muted">&copy; {new Date().getFullYear()} KodNest Technologies. All rights reserved.</p>
-                    </footer>
+                    <nav className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50"><div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between"><span className="text-xl font-bold tracking-tight text-primary-600">Placement Prep</span><button onClick={() => nav('/dashboard')} className="text-sm font-medium text-primary-500 hover:text-primary-700 transition-colors cursor-pointer">Sign In</button></div></nav>
+                    <section className="flex-1 flex items-center justify-center px-6 py-24 lg:py-32"><div className="max-w-2xl text-center">
+                        <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-tight text-text">Ace Your <span className="text-primary-500">Placement</span></h1>
+                        <p className="mt-6 text-lg sm:text-xl leading-relaxed text-text-muted max-w-xl mx-auto">Practice, assess, and prepare for your dream job — all in one platform built for focused, confident preparation.</p>
+                        <button onClick={() => nav('/dashboard')} className="mt-10 inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary-500 text-white font-semibold text-base shadow-lg shadow-primary-500/25 hover:bg-primary-600 transition-all duration-200 cursor-pointer">Get Started <I.ArrowRight className="w-4 h-4" /></button>
+                    </div></section>
+                    <section className="px-6 py-20 bg-white border-t border-border"><div className="max-w-5xl mx-auto">
+                        <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-primary-500 mb-2">Features</h2>
+                        <p className="text-center text-2xl sm:text-3xl font-bold text-text mb-14">Everything you need to land your dream role</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{features.map(f => { const Ic = I[f.icon]; return (<div key={f.title} className="group p-8 rounded-2xl border border-border bg-background hover:border-primary-300 hover:shadow-md transition-all duration-200"><div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center mb-5 group-hover:bg-primary-100 transition-colors"><Ic className="w-6 h-6 text-primary-500" /></div><h3 className="text-lg font-semibold text-text mb-2">{f.title}</h3><p className="text-sm leading-relaxed text-text-muted">{f.desc}</p></div>) })}</div>
+                    </div></section>
+                    <footer className="border-t border-border bg-white py-8"><p className="text-center text-sm text-text-muted">&copy; {new Date().getFullYear()} KodNest Technologies. All rights reserved.</p></footer>
                 </div>
-            );
+            )
         }
 
         /* ============================================================
-           SHARED COMPONENTS
+           PRACTICE PAGE → JD ANALYZER
            ============================================================ */
-        function Card({ children, className = '' }) {
-            return <div className={"bg-white border border-border rounded-2xl p-6 " + className}>{children}</div>;
-        }
-        function CardTitle({ children }) {
-            return <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">{children}</h3>;
+        function PracticePage({ onAnalyze }) {
+            const [company, setCompany] = useState(''); const [role, setRole] = useState(''); const [jd, setJd] = useState('');
+            const handleSubmit = () => { if (!jd.trim()) { alert('Please paste a job description.'); return } const result = runAnalysis(company, role, jd); saveToHistory(result); onAnalyze(result); nav('/dashboard/assessments') }
+            return (<div className="max-w-2xl mx-auto space-y-6">
+                <div><h1 className="text-2xl font-bold text-text">JD Analyzer</h1><p className="mt-1 text-text-muted">Paste a job description to get a personalized preparation plan.</p></div>
+                <Card>
+                    <div className="space-y-4">
+                        <div><label className="block text-sm font-medium text-text mb-1">Company Name <span className="text-text-muted">(optional)</span></label><input value={company} onChange={e => setCompany(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors" placeholder="e.g. Google, Infosys, TCS" /></div>
+                        <div><label className="block text-sm font-medium text-text mb-1">Role <span className="text-text-muted">(optional)</span></label><input value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors" placeholder="e.g. SDE-1, Frontend Developer" /></div>
+                        <div><label className="block text-sm font-medium text-text mb-1">Job Description <span className="text-red-500">*</span></label><textarea value={jd} onChange={e => setJd(e.target.value)} rows={10} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors resize-y" placeholder="Paste the full job description here..." /></div>
+                        <button onClick={handleSubmit} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer"><I.Search className="w-4 h-4" />Analyze &amp; Generate Plan</button>
+                    </div>
+                </Card>
+            </div>)
         }
 
         /* ============================================================
-           1. OVERALL READINESS — SVG circular progress
+           ASSESSMENTS PAGE → RESULTS (Interactive)
            ============================================================ */
-        function OverallReadiness() {
-            const score = 72, radius = 70;
-            const circ = 2 * Math.PI * radius;
-            const offset = circ - (score / 100) * circ;
-            return (
-                <Card className="flex flex-col items-center justify-center">
-                    <CardTitle>Overall Readiness</CardTitle>
-                    <div className="relative w-48 h-48">
-                        <svg className="w-full h-full" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                            <circle cx="80" cy="80" r={radius} fill="none" stroke="hsl(245,58%,96%)" strokeWidth="10" />
-                            <circle cx="80" cy="80" r={radius} fill="none" stroke="hsl(245,58%,51%)" strokeWidth="10" strokeLinecap="round"
-                                strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }} />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-4xl font-bold text-text">{score}</span>
-                            <span className="text-xs text-text-muted mt-1">/ 100</span>
+        function CopyBtn({ label, onClick }) {
+            const [copied, setCopied] = useState(false);
+            const handle = () => { onClick(); setCopied(true); setTimeout(() => setCopied(false), 1500); };
+            return <button onClick={handle} className={"inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer " + (copied ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-white text-text-muted border-border hover:border-primary-300 hover:text-primary-600')}>{copied ? <I.Check className="w-3.5 h-3.5" /> : <I.Copy className="w-3.5 h-3.5" />}{copied ? 'Copied!' : label}</button>;
+        }
+
+        function AssessmentsPage({ result, onResultUpdate }) {
+            if (!result) return (<div className="text-center py-20"><I.FileText className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">No analysis yet</h3><p className="text-sm text-text-muted mb-4">Analyze a job description first to see results here.</p><button onClick={() => nav('/dashboard/practice')} className="px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Go to Analyzer</button></div>);
+
+            const allSkills = Object.values(result.extractedSkills).flat();
+            const [confMap, setConfMap] = useState(() => result.skillConfidenceMap || Object.fromEntries(allSkills.map(s => [s, 'practice'])));
+
+            const liveScore = calcLiveScore(result.readinessScore, confMap);
+
+            const toggleSkill = (skill) => {
+                const next = { ...confMap, [skill]: confMap[skill] === 'know' ? 'practice' : 'know' };
+                setConfMap(next);
+                const updated = { ...result, skillConfidenceMap: next };
+                updateHistoryEntry(result.id, { skillConfidenceMap: next });
+                if (onResultUpdate) onResultUpdate(updated);
+            };
+
+            const weakSkills = Object.entries(confMap).filter(([, v]) => v === 'practice').map(([k]) => k);
+
+            const copyText = (txt) => { navigator.clipboard.writeText(txt); };
+            const downloadTxt = () => {
+                const txt = formatFullExport(result, confMap);
+                const blob = new Blob([txt], { type: 'text/plain' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = (result.company || 'analysis').replace(/\s+/g, '_') + '_prep.txt';
+                a.click(); URL.revokeObjectURL(a.href);
+            };
+
+            const { extractedSkills: sk, checklist, plan, questions, company, role } = result;
+            return (<div className="space-y-6">
+                <div className="flex items-start justify-between flex-wrap gap-4">
+                    <div><h1 className="text-2xl font-bold text-text">Analysis Results</h1><p className="mt-1 text-text-muted">{company && role ? company + ' — ' + role : company || role || 'General Analysis'}</p></div>
+                    <ScoreRing score={liveScore} size={100} />
+                </div>
+
+                {/* Company Intel */}
+                {result.companyIntel && <Card>
+                    <CardTitle>Company Intel</CardTitle>
+                    <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
+                        <div>
+                            <h4 className="text-lg font-semibold text-text">{result.companyIntel.company}</h4>
+                            <p className="text-sm text-text-muted mt-0.5">{result.companyIntel.industry}</p>
                         </div>
+                        <Badge color={result.companyIntel.size === 'Enterprise' ? 'primary' : result.companyIntel.size === 'Mid-size' ? 'amber' : 'green'}>{result.companyIntel.size}</Badge>
                     </div>
-                    <p className="text-sm text-text-muted mt-3">Readiness Score</p>
-                </Card>
-            );
-        }
-
-        /* ============================================================
-           2. SKILL BREAKDOWN — Custom SVG Radar Chart
-           ============================================================ */
-        const skillData = [
-            { subject: 'DSA', score: 75 },
-            { subject: 'System Design', score: 60 },
-            { subject: 'Communication', score: 80 },
-            { subject: 'Resume', score: 85 },
-            { subject: 'Aptitude', score: 70 },
-        ];
-
-        function RadarChartSVG() {
-            const cx = 150, cy = 140, maxR = 100, levels = 4;
-            const n = skillData.length;
-            const angleStep = (2 * Math.PI) / n;
-            const startAngle = -Math.PI / 2;
-
-            function polarToXY(angle, r) {
-                return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
-            }
-
-            // Grid circles
-            const gridCircles = [];
-            for (let i = 1; i <= levels; i++) {
-                const r = (maxR / levels) * i;
-                const pts = [];
-                for (let j = 0; j < n; j++) {
-                    const a = startAngle + j * angleStep;
-                    const p = polarToXY(a, r);
-                    pts.push(p.x + ',' + p.y);
-                }
-                gridCircles.push(<polygon key={i} points={pts.join(' ')} fill="none" stroke="#e5e7eb" strokeWidth="1" />);
-            }
-
-            // Axis lines
-            const axisLines = skillData.map((_, i) => {
-                const a = startAngle + i * angleStep;
-                const p = polarToXY(a, maxR);
-                return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#e5e7eb" strokeWidth="1" />;
-            });
-
-            // Data polygon
-            const dataPoints = skillData.map((d, i) => {
-                const a = startAngle + i * angleStep;
-                const r = (d.score / 100) * maxR;
-                const p = polarToXY(a, r);
-                return p.x + ',' + p.y;
-            });
-
-            // Labels
-            const labels = skillData.map((d, i) => {
-                const a = startAngle + i * angleStep;
-                const p = polarToXY(a, maxR + 18);
-                let anchor = 'middle';
-                if (p.x < cx - 10) anchor = 'end';
-                else if (p.x > cx + 10) anchor = 'start';
-                return <text key={i} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle"
-                    fill="#6b7280" fontSize="11" fontFamily="Inter">{d.subject}</text>;
-            });
-
-            // Score dots
-            const dots = skillData.map((d, i) => {
-                const a = startAngle + i * angleStep;
-                const r = (d.score / 100) * maxR;
-                const p = polarToXY(a, r);
-                return <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="hsl(245,58%,51%)" />;
-            });
-
-            return (
-                <svg viewBox="0 0 300 280" className="w-full h-full">
-                    {gridCircles}
-                    {axisLines}
-                    <polygon points={dataPoints.join(' ')} fill="hsl(245,58%,51%)" fillOpacity="0.12" stroke="hsl(245,58%,51%)" strokeWidth="2" />
-                    {dots}
-                    {labels}
-                </svg>
-            );
-        }
-
-        function SkillBreakdown() {
-            return (
-                <Card>
-                    <CardTitle>Skill Breakdown</CardTitle>
-                    <div style={{ height: '260px' }}>
-                        <RadarChartSVG />
+                    <div className="bg-background rounded-xl p-4 border border-border">
+                        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Typical Hiring Focus</p>
+                        <p className="text-sm text-text leading-relaxed">{result.companyIntel.hiringFocus}</p>
                     </div>
-                </Card>
-            );
-        }
+                    <p className="text-[11px] text-text-muted mt-3 italic">Demo Mode: Company intel generated heuristically.</p>
+                </Card>}
 
-        /* ============================================================
-           3. CONTINUE PRACTICE
-           ============================================================ */
-        function ContinuePractice() {
-            const done = 3, total = 10, pct = (done / total) * 100;
-            return (
-                <Card>
-                    <CardTitle>Continue Practice</CardTitle>
-                    <p className="text-lg font-semibold text-text mb-1">Dynamic Programming</p>
-                    <p className="text-sm text-text-muted mb-4">{done} of {total} problems completed</p>
-                    <div className="w-full h-2 bg-primary-50 rounded-full overflow-hidden mb-5">
-                        <div className="h-full bg-primary-500 rounded-full" style={{ width: pct + '%', transition: 'width 0.5s ease-in-out' }} />
-                    </div>
-                    <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors duration-150 cursor-pointer">
-                        Continue
-                        <Icons.ArrowRight className="w-4 h-4" />
-                    </button>
-                </Card>
-            );
-        }
-
-        /* ============================================================
-           4. WEEKLY GOALS
-           ============================================================ */
-        const weekDays = [
-            { day: 'Mon', active: true }, { day: 'Tue', active: true }, { day: 'Wed', active: false },
-            { day: 'Thu', active: true }, { day: 'Fri', active: false }, { day: 'Sat', active: false }, { day: 'Sun', active: false },
-        ];
-        function WeeklyGoals() {
-            const solved = 12, goal = 20, pct = (solved / goal) * 100;
-            return (
-                <Card>
-                    <CardTitle>Weekly Goals</CardTitle>
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-text">Problems Solved</p>
-                        <span className="text-sm font-semibold text-primary-500">{solved}/{goal}</span>
-                    </div>
-                    <div className="w-full h-2 bg-primary-50 rounded-full overflow-hidden mb-5">
-                        <div className="h-full bg-primary-500 rounded-full" style={{ width: pct + '%', transition: 'width 0.5s ease-in-out' }} />
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                        {weekDays.map(d => (
-                            <div key={d.day} className="flex flex-col items-center gap-1.5">
-                                <div className={"w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium " + (d.active ? 'bg-primary-500 text-white' : 'bg-primary-50 text-text-muted')}>
-                                    {d.day.charAt(0)}
-                                </div>
-                                <span className="text-xs text-text-muted">{d.day}</span>
+                {/* Round Map Timeline */}
+                {result.roundMap && <Card>
+                    <CardTitle>Expected Interview Rounds</CardTitle>
+                    <div className="relative pl-6">
+                        <div className="absolute left-[9px] top-1 bottom-1 w-0.5 bg-primary-100"></div>
+                        {result.roundMap.map((r, i) => (
+                            <div key={i} className="relative mb-6 last:mb-0">
+                                <div className={"absolute -left-6 top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold " + (i === 0 ? 'bg-primary-500 border-primary-500 text-white' : 'bg-white border-primary-300 text-primary-500')}>{i + 1}</div>
+                                <h4 className="text-sm font-semibold text-text">{r.round}</h4>
+                                <p className="text-sm text-text-muted mt-0.5">{r.desc}</p>
+                                <p className="text-xs text-text-muted mt-1.5 bg-background rounded-lg px-3 py-2 border border-border italic">{r.why}</p>
                             </div>
                         ))}
                     </div>
+                </Card>}
+
+                {/* Skills with toggles */}
+                <Card><CardTitle>Key Skills Extracted</CardTitle>
+                    <p className="text-xs text-text-muted mb-3">Click a skill to toggle your confidence. Score updates live.</p>
+                    <div className="space-y-3">{Object.entries(sk).map(([cat, tags]) => (<div key={cat}><p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1.5">{cat}</p><div className="flex flex-wrap gap-1.5">{tags.map(t => {
+                        const know = confMap[t] === 'know';
+                        return <button key={t} onClick={() => toggleSkill(t)} className={"inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer transition-all duration-150 " + (know ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100')}>{know ? <I.Check className="w-3 h-3" /> : null}{t}{!know && <span className="text-amber-400 text-[10px]">⚡</span>}</button>;
+                    })}</div></div>))}</div>
+                    <div className="mt-3 flex gap-2 text-[11px] text-text-muted"><span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span>I know this</span><span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span>Need practice</span></div>
                 </Card>
-            );
-        }
 
-        /* ============================================================
-           5. UPCOMING ASSESSMENTS
-           ============================================================ */
-        const assessments = [
-            { title: 'DSA Mock Test', date: 'Tomorrow', time: '10:00 AM' },
-            { title: 'System Design Review', date: 'Wed', time: '2:00 PM' },
-            { title: 'HR Interview Prep', date: 'Friday', time: '11:00 AM' },
-        ];
-        function UpcomingAssessments() {
-            return (
-                <Card>
-                    <CardTitle>Upcoming Assessments</CardTitle>
-                    <div className="-mx-6">
-                        {assessments.map((a, i) => (
-                            <div key={i} className={"flex items-center justify-between px-6 py-3.5" + (i > 0 ? ' border-t border-border' : '')}>
-                                <div>
-                                    <p className="text-sm font-medium text-text">{a.title}</p>
-                                    <div className="flex items-center gap-3 mt-1">
-                                        <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-                                            <Icons.Calendar className="w-3.5 h-3.5" /> {a.date}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-                                            <Icons.Clock className="w-3.5 h-3.5" /> {a.time}
-                                        </span>
-                                    </div>
-                                </div>
-                                <Icons.ArrowRight className="w-4 h-4 text-text-muted" />
-                            </div>
-                        ))}
-                    </div>
+                {/* Export bar */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <CopyBtn label="Copy 7-day plan" onClick={() => copyText(formatPlanText(plan))} />
+                    <CopyBtn label="Copy checklist" onClick={() => copyText(formatChecklistText(checklist))} />
+                    <CopyBtn label="Copy questions" onClick={() => copyText(formatQuestionsText(questions))} />
+                    <button onClick={downloadTxt} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-primary-200 bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors cursor-pointer"><I.Download className="w-3.5 h-3.5" />Download as TXT</button>
+                </div>
+
+                {/* Checklist */}
+                <Card><CardTitle>Round-wise Preparation Checklist</CardTitle>
+                    <div className="space-y-5">{checklist.map((r, ri) => (<div key={ri}><h4 className="text-sm font-semibold text-text mb-2">{r.round}</h4><ul className="space-y-1.5">{r.items.map((it, ii) => (<li key={ii} className="flex items-start gap-2 text-sm text-text-muted"><span className="mt-0.5 w-4 h-4 rounded border border-border flex-shrink-0 flex items-center justify-center text-xs">&#x25A2;</span>{it}</li>))}</ul></div>))}</div>
                 </Card>
-            );
+
+                {/* 7-day plan */}
+                <Card><CardTitle>7-Day Preparation Plan</CardTitle>
+                    <div className="space-y-4">{plan.map((d, di) => (<div key={di} className="border-l-2 border-primary-200 pl-4"><h4 className="text-sm font-semibold text-text">{d.day}: {d.title}</h4><ul className="mt-1 space-y-1">{d.tasks.map((t, ti) => (<li key={ti} className="text-sm text-text-muted flex items-start gap-1.5"><span className="text-primary-400 mt-0.5">•</span>{t}</li>))}</ul></div>))}</div>
+                </Card>
+
+                {/* Questions */}
+                <Card><CardTitle>10 Likely Interview Questions</CardTitle>
+                    <ol className="space-y-3">{questions.map((q, qi) => (<li key={qi} className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-600 text-xs font-semibold flex items-center justify-center">{qi + 1}</span><div><p className="text-sm font-medium text-text">{q.question}</p><p className="text-xs text-text-muted mt-0.5">{q.category}</p></div></li>))}</ol>
+                </Card>
+
+                {/* Action Next */}
+                <Card className="border-primary-200 bg-primary-50/30">
+                    <CardTitle>Action Next</CardTitle>
+                    {weakSkills.length > 0 && <div className="mb-3"><p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1.5">Top weak areas</p><div className="flex flex-wrap gap-1.5">{weakSkills.slice(0, 3).map(s => <Badge key={s} color="amber">{s}</Badge>)}</div></div>}
+                    <p className="text-sm text-text"><span className="font-semibold">Suggested:</span> Start Day 1 of your 7-day plan now. Focus on{weakSkills.length > 0 ? ' ' + weakSkills.slice(0, 2).join(' and ') : ' fundamentals'} first.</p>
+                </Card>
+            </div>)
         }
 
         /* ============================================================
-           DASHBOARD PAGE
+           RESOURCES PAGE → HISTORY
            ============================================================ */
-        function DashboardPage() {
-            return (
-                <div className="space-y-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-text flex items-center gap-2">
-                            Welcome back <Icons.Flame className="w-5 h-5 text-amber-500" />
-                        </h1>
-                        <p className="mt-1 text-text-muted">Here's your placement preparation overview.</p>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <OverallReadiness />
-                        <SkillBreakdown />
-                        <ContinuePractice />
-                        <WeeklyGoals />
-                        <UpcomingAssessments />
-                    </div>
-                </div>
-            );
+        function ResourcesPage({ onSelect }) {
+            const [history, setHistory] = useState(loadHistory());
+            const handleDelete = (id) => { deleteHistoryEntry(id); setHistory(loadHistory()) };
+            if (!history.length) return (<div className="text-center py-20"><I.BookOpen className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">No history yet</h3><p className="text-sm text-text-muted mb-4">Analyzed JDs will appear here after you run an analysis.</p><button onClick={() => nav('/dashboard/practice')} className="px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Analyze a JD</button></div>);
+            return (<div className="space-y-6">
+                <div><h1 className="text-2xl font-bold text-text">Analysis History</h1><p className="mt-1 text-text-muted">{history.length} saved {history.length === 1 ? 'entry' : 'entries'}</p></div>
+                <div className="space-y-3">{history.map(e => (<div key={e.id} className="bg-white border border-border rounded-xl p-4 flex items-center justify-between gap-4 hover:border-primary-300 transition-colors cursor-pointer" onClick={() => { onSelect(e); nav('/dashboard/assessments') }}>
+                    <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-text truncate">{e.company || 'Untitled'}{e.role ? ' — ' + e.role : ''}</p><p className="text-xs text-text-muted mt-0.5">{new Date(e.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p></div>
+                    <div className="flex items-center gap-3"><Badge color={e.readinessScore >= 70 ? 'green' : e.readinessScore >= 50 ? 'amber' : 'primary'}>{e.readinessScore}/100</Badge><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }} className="p-1 text-text-muted hover:text-red-500 transition-colors cursor-pointer"><I.Trash className="w-4 h-4" /></button></div>
+                </div>))}</div>
+            </div>)
         }
 
         /* ============================================================
-           DASHBOARD LAYOUT (Sidebar + Header)
+           DASHBOARD PAGE (overview)
            ============================================================ */
-        const sidebarItems = [
-            { path: '/dashboard', icon: 'LayoutDashboard', label: 'Dashboard', exact: true },
-            { path: '/dashboard/practice', icon: 'Code', label: 'Practice' },
-            { path: '/dashboard/assessments', icon: 'ClipboardCheck', label: 'Assessments' },
-            { path: '/dashboard/resources', icon: 'BookOpen', label: 'Resources' },
-            { path: '/dashboard/profile', icon: 'User', label: 'Profile' },
-        ];
-
-        function DashboardLayout({ route, children }) {
-            const currentLabel = sidebarItems.find(item => item.exact ? route === item.path : route.startsWith(item.path))?.label || 'Dashboard';
-
-            return (
-                <div className="min-h-screen flex">
-                    <aside className="w-64 bg-white border-r border-border flex flex-col fixed inset-y-0 left-0 z-40">
-                        <div className="h-16 flex items-center px-6 border-b border-border">
-                            <span className="text-lg font-bold tracking-tight text-primary-600">Placement Prep</span>
+        function DashboardPage({ latestResult }) {
+            const history = loadHistory(); const latest = latestResult || history[0];
+            return (<div className="space-y-6">
+                <div><h1 className="text-2xl font-bold text-text flex items-center gap-2">Welcome back <I.Flame className="w-5 h-5 text-amber-500" /></h1><p className="mt-1 text-text-muted">Here's your placement preparation overview.</p></div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="flex flex-col items-center justify-center">
+                        <CardTitle>Readiness Score</CardTitle>
+                        <ScoreRing score={latest ? latest.readinessScore : 0} size={180} />
+                        <p className="text-sm text-text-muted mt-3">{latest ? 'Based on latest analysis' : 'Analyze a JD to see your score'}</p>
+                        {!latest && <button onClick={() => nav('/dashboard/practice')} className="mt-3 px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Analyze Now</button>}
+                    </Card>
+                    <Card>
+                        <CardTitle>Quick Stats</CardTitle>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center border-b border-border pb-3"><span className="text-sm text-text-muted">Total Analyses</span><span className="text-lg font-bold text-text">{history.length}</span></div>
+                            <div className="flex justify-between items-center border-b border-border pb-3"><span className="text-sm text-text-muted">Avg Score</span><span className="text-lg font-bold text-text">{history.length ? Math.round(history.reduce((a, e) => a + e.readinessScore, 0) / history.length) : 0}</span></div>
+                            <div className="flex justify-between items-center"><span className="text-sm text-text-muted">Best Score</span><span className="text-lg font-bold text-text">{history.length ? Math.max(...history.map(e => e.readinessScore)) : 0}</span></div>
                         </div>
-                        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-                            {sidebarItems.map(item => {
-                                const active = item.exact ? route === item.path : route.startsWith(item.path);
-                                const Ic = Icons[item.icon];
-                                return (
-                                    <a key={item.path} href={"#" + item.path}
-                                        className={"flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline " + (active ? 'bg-primary-50 text-primary-600' : 'text-text-muted hover:bg-primary-50/50 hover:text-text')}>
-                                        <Ic className="w-5 h-5" /> {item.label}
-                                    </a>
-                                );
-                            })}
-                        </nav>
-                        <div className="p-4 border-t border-border">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                    <Icons.User className="w-4 h-4 text-primary-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-text truncate">Student</p>
-                                    <p className="text-xs text-text-muted truncate">student@kodnest.com</p>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <div className="flex-1 ml-64 flex flex-col">
-                        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-8 sticky top-0 z-30">
-                            <h2 className="text-lg font-semibold text-text">{currentLabel}</h2>
-                            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
-                                <Icons.User className="w-5 h-5 text-primary-600" />
-                            </div>
-                        </header>
-                        <main className="flex-1 p-8">{children}</main>
-                    </div>
+                    </Card>
+                    {latest && <Card className="lg:col-span-2">
+                        <CardTitle>Latest: {latest.company || 'Analysis'}{latest.role ? ' — ' + latest.role : ''}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mb-3">{Object.values(latest.extractedSkills).flat().slice(0, 12).map(s => <Badge key={s}>{s}</Badge>)}</div>
+                        <button onClick={() => nav('/dashboard/assessments')} className="px-4 py-2 rounded-xl bg-primary-50 text-primary-600 text-sm font-medium hover:bg-primary-100 transition-colors cursor-pointer">View Full Results →</button>
+                    </Card>}
                 </div>
-            );
+            </div>)
         }
 
         /* ============================================================
-           PLACEHOLDER PAGES
+           PROFILE PAGE
            ============================================================ */
-        function PlaceholderPage({ title, desc, icon }) {
-            const Ic = Icons[icon];
-            return (
-                <div className="space-y-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-text">{title}</h1>
-                        <p className="mt-1 text-text-muted">{desc}</p>
-                    </div>
-                    <div className="bg-white border border-border rounded-xl p-12 text-center">
-                        <Ic className="w-12 h-12 text-border mx-auto mb-4" strokeWidth="1.2" />
-                        <h3 className="text-lg font-semibold text-text mb-1">Coming soon</h3>
-                        <p className="text-sm text-text-muted max-w-sm mx-auto">This section is under development and will be available shortly.</p>
-                    </div>
+        function ProfilePage() { return (<div className="space-y-6"><div><h1 className="text-2xl font-bold text-text">Profile</h1><p className="mt-1 text-text-muted">Manage your account and preferences.</p></div><Card className="text-center py-12"><I.User className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">Profile settings</h3><p className="text-sm text-text-muted">Coming soon.</p></Card></div>) }
+
+        /* ============================================================
+           DASHBOARD LAYOUT
+           ============================================================ */
+        const sideNav = [{ path: '/dashboard', icon: 'LayoutDashboard', label: 'Dashboard', exact: true }, { path: '/dashboard/practice', icon: 'Search', label: 'Analyzer' }, { path: '/dashboard/assessments', icon: 'ClipboardCheck', label: 'Results' }, { path: '/dashboard/resources', icon: 'BookOpen', label: 'History' }, { path: '/dashboard/profile', icon: 'User', label: 'Profile' }];
+        function Layout({ route, children }) {
+            const lbl = sideNav.find(i => i.exact ? route === i.path : route.startsWith(i.path))?.label || 'Dashboard';
+            return (<div className="min-h-screen flex">
+                <aside className="w-64 bg-white border-r border-border flex flex-col fixed inset-y-0 left-0 z-40">
+                    <div className="h-16 flex items-center px-6 border-b border-border"><span className="text-lg font-bold tracking-tight text-primary-600">Placement Prep</span></div>
+                    <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">{sideNav.map(it => { const active = it.exact ? route === it.path : route.startsWith(it.path); const Ic = I[it.icon]; return <a key={it.path} href={'#' + it.path} className={"flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline " + (active ? 'bg-primary-50 text-primary-600' : 'text-text-muted hover:bg-primary-50/50 hover:text-text')}><Ic className="w-5 h-5" />{it.label}</a> })}</nav>
+                    <div className="p-4 border-t border-border"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center"><I.User className="w-4 h-4 text-primary-600" /></div><div className="flex-1 min-w-0"><p className="text-sm font-medium text-text truncate">Student</p><p className="text-xs text-text-muted truncate">student@kodnest.com</p></div></div></div>
+                </aside>
+                <div className="flex-1 ml-64 flex flex-col">
+                    <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-8 sticky top-0 z-30"><h2 className="text-lg font-semibold text-text">{lbl}</h2><div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center"><I.User className="w-5 h-5 text-primary-600" /></div></header>
+                    <main className="flex-1 p-8">{children}</main>
                 </div>
-            );
+            </div>)
         }
 
         /* ============================================================
-           APP — HASH ROUTER
+           APP
            ============================================================ */
         function App() {
             const route = useRoute();
-
+            const [result, setResult] = useState(() => loadHistory()[0] || null);
+            const handleAnalyze = useCallback((r) => setResult(r), []);
+            const handleSelect = useCallback((r) => setResult(r), []);
             if (route === '/' || route === '') return <LandingPage />;
-
             let page;
-            if (route === '/dashboard') page = <DashboardPage />;
-            else if (route === '/dashboard/practice') page = <PlaceholderPage title="Practice Problems" desc="Solve curated problems to sharpen your skills." icon="Code" />;
-            else if (route === '/dashboard/assessments') page = <PlaceholderPage title="Assessments" desc="Test your knowledge with timed assessments." icon="ClipboardCheck" />;
-            else if (route === '/dashboard/resources') page = <PlaceholderPage title="Resources" desc="Study materials, guides, and references." icon="BookOpen" />;
-            else if (route === '/dashboard/profile') page = <PlaceholderPage title="Profile" desc="Manage your account and preferences." icon="User" />;
-            else page = <DashboardPage />;
-
-            return <DashboardLayout route={route}>{page}</DashboardLayout>;
+            if (route === '/dashboard') page = <DashboardPage latestResult={result} />;
+            else if (route === '/dashboard/practice') page = <PracticePage onAnalyze={handleAnalyze} />;
+            else if (route === '/dashboard/assessments') page = <AssessmentsPage result={result} onResultUpdate={setResult} />;
+            else if (route === '/dashboard/resources') page = <ResourcesPage onSelect={handleSelect} />;
+            else if (route === '/dashboard/profile') page = <ProfilePage />;
+            else page = <DashboardPage latestResult={result} />;
+            return <Layout route={route}>{page}</Layout>;
         }
-
-        /* Mount */
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
