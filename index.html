@@ -1,13 +1,519 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>placement-app</title>
-  </head>
-  <body>
+    <title>KodNest — Placement Readiness Platform</title>
+    <meta name="description" content="Practice, assess, and prepare for your dream job." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Tailwind CSS (CDN — fine for dev/prototype) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: 'hsl(245, 58%, 96%)',
+                            100: 'hsl(245, 58%, 90%)',
+                            200: 'hsl(245, 58%, 80%)',
+                            300: 'hsl(245, 58%, 70%)',
+                            400: 'hsl(245, 58%, 60%)',
+                            500: 'hsl(245, 58%, 51%)',
+                            600: 'hsl(245, 58%, 43%)',
+                            700: 'hsl(245, 58%, 35%)',
+                            800: 'hsl(245, 58%, 27%)',
+                            900: 'hsl(245, 58%, 19%)',
+                        },
+                        surface: '#ffffff',
+                        background: '#f8f9fc',
+                        text: '#1a1a2e',
+                        'text-muted': '#6b7280',
+                        border: '#e5e7eb',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <!-- React 18 (CDN) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f8f9fc;
+            color: #1a1a2e;
+        }
+
+        ::selection {
+            background: hsl(245, 58%, 51%);
+            color: #fff;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+
+<body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /* ============================================================
+           SVG ICONS (inline — no external dependency)
+           ============================================================ */
+        const Icons = {
+            Code: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>,
+            Video: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>,
+            BarChart3: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>,
+            ArrowRight: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>,
+            LayoutDashboard: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>,
+            ClipboardCheck: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="m9 14 2 2 4-4" /></svg>,
+            BookOpen: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>,
+            User: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+            Calendar: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+            Clock: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+            Flame: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>,
+            Target: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>,
+            TrendingUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
+        };
+
+        /* ============================================================
+           HASH ROUTER
+           ============================================================ */
+        function useRoute() {
+            const [route, setRoute] = useState(window.location.hash.slice(1) || '/');
+            useEffect(() => {
+                const h = () => setRoute(window.location.hash.slice(1) || '/');
+                window.addEventListener('hashchange', h);
+                return () => window.removeEventListener('hashchange', h);
+            }, []);
+            return route;
+        }
+        function navigate(path) { window.location.hash = path; }
+
+        /* ============================================================
+           LANDING PAGE
+           ============================================================ */
+        const features = [
+            { icon: 'Code', title: 'Practice Problems', desc: 'Solve curated coding challenges across data structures, algorithms, and system design.' },
+            { icon: 'Video', title: 'Mock Interviews', desc: 'Experience realistic interview simulations with detailed feedback and analysis.' },
+            { icon: 'BarChart3', title: 'Track Progress', desc: 'Visualize your growth with detailed analytics on speed, accuracy, and consistency.' },
+        ];
+
+        function LandingPage() {
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <nav className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+                        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+                            <span className="text-xl font-bold tracking-tight text-primary-600">Placement Prep</span>
+                            <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-primary-500 hover:text-primary-700 transition-colors cursor-pointer">Sign In</button>
+                        </div>
+                    </nav>
+
+                    <section className="flex-1 flex items-center justify-center px-6 py-24 lg:py-32">
+                        <div className="max-w-2xl text-center">
+                            <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-tight text-text">
+                                Ace Your <span className="text-primary-500">Placement</span>
+                            </h1>
+                            <p className="mt-6 text-lg sm:text-xl leading-relaxed text-text-muted max-w-xl mx-auto">
+                                Practice, assess, and prepare for your dream job — all in one platform built for focused, confident preparation.
+                            </p>
+                            <button onClick={() => navigate('/dashboard')}
+                                className="mt-10 inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary-500 text-white font-semibold text-base shadow-lg shadow-primary-500/25 hover:bg-primary-600 hover:shadow-primary-500/35 transition-all duration-200 cursor-pointer">
+                                Get Started
+                                <Icons.ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </section>
+
+                    <section className="px-6 py-20 bg-white border-t border-border">
+                        <div className="max-w-5xl mx-auto">
+                            <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-primary-500 mb-2">Features</h2>
+                            <p className="text-center text-2xl sm:text-3xl font-bold text-text mb-14">Everything you need to land your dream role</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {features.map(f => {
+                                    const Ic = Icons[f.icon];
+                                    return (
+                                        <div key={f.title} className="group p-8 rounded-2xl border border-border bg-background hover:border-primary-300 hover:shadow-md hover:shadow-primary-500/5 transition-all duration-200">
+                                            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center mb-5 group-hover:bg-primary-100 transition-colors duration-200">
+                                                <Ic className="w-6 h-6 text-primary-500" />
+                                            </div>
+                                            <h3 className="text-lg font-semibold text-text mb-2">{f.title}</h3>
+                                            <p className="text-sm leading-relaxed text-text-muted">{f.desc}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="border-t border-border bg-white py-8">
+                        <p className="text-center text-sm text-text-muted">&copy; {new Date().getFullYear()} KodNest Technologies. All rights reserved.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        /* ============================================================
+           SHARED COMPONENTS
+           ============================================================ */
+        function Card({ children, className = '' }) {
+            return <div className={"bg-white border border-border rounded-2xl p-6 " + className}>{children}</div>;
+        }
+        function CardTitle({ children }) {
+            return <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">{children}</h3>;
+        }
+
+        /* ============================================================
+           1. OVERALL READINESS — SVG circular progress
+           ============================================================ */
+        function OverallReadiness() {
+            const score = 72, radius = 70;
+            const circ = 2 * Math.PI * radius;
+            const offset = circ - (score / 100) * circ;
+            return (
+                <Card className="flex flex-col items-center justify-center">
+                    <CardTitle>Overall Readiness</CardTitle>
+                    <div className="relative w-48 h-48">
+                        <svg className="w-full h-full" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                            <circle cx="80" cy="80" r={radius} fill="none" stroke="hsl(245,58%,96%)" strokeWidth="10" />
+                            <circle cx="80" cy="80" r={radius} fill="none" stroke="hsl(245,58%,51%)" strokeWidth="10" strokeLinecap="round"
+                                strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }} />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-4xl font-bold text-text">{score}</span>
+                            <span className="text-xs text-text-muted mt-1">/ 100</span>
+                        </div>
+                    </div>
+                    <p className="text-sm text-text-muted mt-3">Readiness Score</p>
+                </Card>
+            );
+        }
+
+        /* ============================================================
+           2. SKILL BREAKDOWN — Custom SVG Radar Chart
+           ============================================================ */
+        const skillData = [
+            { subject: 'DSA', score: 75 },
+            { subject: 'System Design', score: 60 },
+            { subject: 'Communication', score: 80 },
+            { subject: 'Resume', score: 85 },
+            { subject: 'Aptitude', score: 70 },
+        ];
+
+        function RadarChartSVG() {
+            const cx = 150, cy = 140, maxR = 100, levels = 4;
+            const n = skillData.length;
+            const angleStep = (2 * Math.PI) / n;
+            const startAngle = -Math.PI / 2;
+
+            function polarToXY(angle, r) {
+                return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+            }
+
+            // Grid circles
+            const gridCircles = [];
+            for (let i = 1; i <= levels; i++) {
+                const r = (maxR / levels) * i;
+                const pts = [];
+                for (let j = 0; j < n; j++) {
+                    const a = startAngle + j * angleStep;
+                    const p = polarToXY(a, r);
+                    pts.push(p.x + ',' + p.y);
+                }
+                gridCircles.push(<polygon key={i} points={pts.join(' ')} fill="none" stroke="#e5e7eb" strokeWidth="1" />);
+            }
+
+            // Axis lines
+            const axisLines = skillData.map((_, i) => {
+                const a = startAngle + i * angleStep;
+                const p = polarToXY(a, maxR);
+                return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#e5e7eb" strokeWidth="1" />;
+            });
+
+            // Data polygon
+            const dataPoints = skillData.map((d, i) => {
+                const a = startAngle + i * angleStep;
+                const r = (d.score / 100) * maxR;
+                const p = polarToXY(a, r);
+                return p.x + ',' + p.y;
+            });
+
+            // Labels
+            const labels = skillData.map((d, i) => {
+                const a = startAngle + i * angleStep;
+                const p = polarToXY(a, maxR + 18);
+                let anchor = 'middle';
+                if (p.x < cx - 10) anchor = 'end';
+                else if (p.x > cx + 10) anchor = 'start';
+                return <text key={i} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle"
+                    fill="#6b7280" fontSize="11" fontFamily="Inter">{d.subject}</text>;
+            });
+
+            // Score dots
+            const dots = skillData.map((d, i) => {
+                const a = startAngle + i * angleStep;
+                const r = (d.score / 100) * maxR;
+                const p = polarToXY(a, r);
+                return <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="hsl(245,58%,51%)" />;
+            });
+
+            return (
+                <svg viewBox="0 0 300 280" className="w-full h-full">
+                    {gridCircles}
+                    {axisLines}
+                    <polygon points={dataPoints.join(' ')} fill="hsl(245,58%,51%)" fillOpacity="0.12" stroke="hsl(245,58%,51%)" strokeWidth="2" />
+                    {dots}
+                    {labels}
+                </svg>
+            );
+        }
+
+        function SkillBreakdown() {
+            return (
+                <Card>
+                    <CardTitle>Skill Breakdown</CardTitle>
+                    <div style={{ height: '260px' }}>
+                        <RadarChartSVG />
+                    </div>
+                </Card>
+            );
+        }
+
+        /* ============================================================
+           3. CONTINUE PRACTICE
+           ============================================================ */
+        function ContinuePractice() {
+            const done = 3, total = 10, pct = (done / total) * 100;
+            return (
+                <Card>
+                    <CardTitle>Continue Practice</CardTitle>
+                    <p className="text-lg font-semibold text-text mb-1">Dynamic Programming</p>
+                    <p className="text-sm text-text-muted mb-4">{done} of {total} problems completed</p>
+                    <div className="w-full h-2 bg-primary-50 rounded-full overflow-hidden mb-5">
+                        <div className="h-full bg-primary-500 rounded-full" style={{ width: pct + '%', transition: 'width 0.5s ease-in-out' }} />
+                    </div>
+                    <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors duration-150 cursor-pointer">
+                        Continue
+                        <Icons.ArrowRight className="w-4 h-4" />
+                    </button>
+                </Card>
+            );
+        }
+
+        /* ============================================================
+           4. WEEKLY GOALS
+           ============================================================ */
+        const weekDays = [
+            { day: 'Mon', active: true }, { day: 'Tue', active: true }, { day: 'Wed', active: false },
+            { day: 'Thu', active: true }, { day: 'Fri', active: false }, { day: 'Sat', active: false }, { day: 'Sun', active: false },
+        ];
+        function WeeklyGoals() {
+            const solved = 12, goal = 20, pct = (solved / goal) * 100;
+            return (
+                <Card>
+                    <CardTitle>Weekly Goals</CardTitle>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium text-text">Problems Solved</p>
+                        <span className="text-sm font-semibold text-primary-500">{solved}/{goal}</span>
+                    </div>
+                    <div className="w-full h-2 bg-primary-50 rounded-full overflow-hidden mb-5">
+                        <div className="h-full bg-primary-500 rounded-full" style={{ width: pct + '%', transition: 'width 0.5s ease-in-out' }} />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        {weekDays.map(d => (
+                            <div key={d.day} className="flex flex-col items-center gap-1.5">
+                                <div className={"w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium " + (d.active ? 'bg-primary-500 text-white' : 'bg-primary-50 text-text-muted')}>
+                                    {d.day.charAt(0)}
+                                </div>
+                                <span className="text-xs text-text-muted">{d.day}</span>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            );
+        }
+
+        /* ============================================================
+           5. UPCOMING ASSESSMENTS
+           ============================================================ */
+        const assessments = [
+            { title: 'DSA Mock Test', date: 'Tomorrow', time: '10:00 AM' },
+            { title: 'System Design Review', date: 'Wed', time: '2:00 PM' },
+            { title: 'HR Interview Prep', date: 'Friday', time: '11:00 AM' },
+        ];
+        function UpcomingAssessments() {
+            return (
+                <Card>
+                    <CardTitle>Upcoming Assessments</CardTitle>
+                    <div className="-mx-6">
+                        {assessments.map((a, i) => (
+                            <div key={i} className={"flex items-center justify-between px-6 py-3.5" + (i > 0 ? ' border-t border-border' : '')}>
+                                <div>
+                                    <p className="text-sm font-medium text-text">{a.title}</p>
+                                    <div className="flex items-center gap-3 mt-1">
+                                        <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+                                            <Icons.Calendar className="w-3.5 h-3.5" /> {a.date}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+                                            <Icons.Clock className="w-3.5 h-3.5" /> {a.time}
+                                        </span>
+                                    </div>
+                                </div>
+                                <Icons.ArrowRight className="w-4 h-4 text-text-muted" />
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            );
+        }
+
+        /* ============================================================
+           DASHBOARD PAGE
+           ============================================================ */
+        function DashboardPage() {
+            return (
+                <div className="space-y-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-text flex items-center gap-2">
+                            Welcome back <Icons.Flame className="w-5 h-5 text-amber-500" />
+                        </h1>
+                        <p className="mt-1 text-text-muted">Here's your placement preparation overview.</p>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <OverallReadiness />
+                        <SkillBreakdown />
+                        <ContinuePractice />
+                        <WeeklyGoals />
+                        <UpcomingAssessments />
+                    </div>
+                </div>
+            );
+        }
+
+        /* ============================================================
+           DASHBOARD LAYOUT (Sidebar + Header)
+           ============================================================ */
+        const sidebarItems = [
+            { path: '/dashboard', icon: 'LayoutDashboard', label: 'Dashboard', exact: true },
+            { path: '/dashboard/practice', icon: 'Code', label: 'Practice' },
+            { path: '/dashboard/assessments', icon: 'ClipboardCheck', label: 'Assessments' },
+            { path: '/dashboard/resources', icon: 'BookOpen', label: 'Resources' },
+            { path: '/dashboard/profile', icon: 'User', label: 'Profile' },
+        ];
+
+        function DashboardLayout({ route, children }) {
+            const currentLabel = sidebarItems.find(item => item.exact ? route === item.path : route.startsWith(item.path))?.label || 'Dashboard';
+
+            return (
+                <div className="min-h-screen flex">
+                    <aside className="w-64 bg-white border-r border-border flex flex-col fixed inset-y-0 left-0 z-40">
+                        <div className="h-16 flex items-center px-6 border-b border-border">
+                            <span className="text-lg font-bold tracking-tight text-primary-600">Placement Prep</span>
+                        </div>
+                        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+                            {sidebarItems.map(item => {
+                                const active = item.exact ? route === item.path : route.startsWith(item.path);
+                                const Ic = Icons[item.icon];
+                                return (
+                                    <a key={item.path} href={"#" + item.path}
+                                        className={"flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline " + (active ? 'bg-primary-50 text-primary-600' : 'text-text-muted hover:bg-primary-50/50 hover:text-text')}>
+                                        <Ic className="w-5 h-5" /> {item.label}
+                                    </a>
+                                );
+                            })}
+                        </nav>
+                        <div className="p-4 border-t border-border">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                    <Icons.User className="w-4 h-4 text-primary-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-text truncate">Student</p>
+                                    <p className="text-xs text-text-muted truncate">student@kodnest.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <div className="flex-1 ml-64 flex flex-col">
+                        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-8 sticky top-0 z-30">
+                            <h2 className="text-lg font-semibold text-text">{currentLabel}</h2>
+                            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
+                                <Icons.User className="w-5 h-5 text-primary-600" />
+                            </div>
+                        </header>
+                        <main className="flex-1 p-8">{children}</main>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ============================================================
+           PLACEHOLDER PAGES
+           ============================================================ */
+        function PlaceholderPage({ title, desc, icon }) {
+            const Ic = Icons[icon];
+            return (
+                <div className="space-y-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-text">{title}</h1>
+                        <p className="mt-1 text-text-muted">{desc}</p>
+                    </div>
+                    <div className="bg-white border border-border rounded-xl p-12 text-center">
+                        <Ic className="w-12 h-12 text-border mx-auto mb-4" strokeWidth="1.2" />
+                        <h3 className="text-lg font-semibold text-text mb-1">Coming soon</h3>
+                        <p className="text-sm text-text-muted max-w-sm mx-auto">This section is under development and will be available shortly.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ============================================================
+           APP — HASH ROUTER
+           ============================================================ */
+        function App() {
+            const route = useRoute();
+
+            if (route === '/' || route === '') return <LandingPage />;
+
+            let page;
+            if (route === '/dashboard') page = <DashboardPage />;
+            else if (route === '/dashboard/practice') page = <PlaceholderPage title="Practice Problems" desc="Solve curated problems to sharpen your skills." icon="Code" />;
+            else if (route === '/dashboard/assessments') page = <PlaceholderPage title="Assessments" desc="Test your knowledge with timed assessments." icon="ClipboardCheck" />;
+            else if (route === '/dashboard/resources') page = <PlaceholderPage title="Resources" desc="Study materials, guides, and references." icon="BookOpen" />;
+            else if (route === '/dashboard/profile') page = <PlaceholderPage title="Profile" desc="Manage your account and preferences." icon="User" />;
+            else page = <DashboardPage />;
+
+            return <DashboardLayout route={route}>{page}</DashboardLayout>;
+        }
+
+        /* Mount */
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+
 </html>
