@@ -1,108 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KodNest Premium Build System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <meta name="description"
+        content="KodNest Premium Build System — a calm, intentional design system for serious product work." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+
+    <!-- Design System -->
+    <link rel="stylesheet" href="design-system.css" />
 </head>
+
 <body>
 
-    <!-- Top Bar -->
+    <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
     <header class="top-bar">
-        <div class="project-name">KodNest Premium</div>
-        <div class="progress-indicator">Step 1 / 5</div>
-        <div class="status-badge status-not-started">Not Started</div>
+        <div class="top-bar__project-name">KodNest Premium Build System</div>
+
+        <div class="progress-indicator">
+            <div class="progress-indicator__step progress-indicator__step--completed"></div>
+            <div class="progress-indicator__step progress-indicator__step--current"></div>
+            <div class="progress-indicator__step"></div>
+            <div class="progress-indicator__step"></div>
+            <div class="progress-indicator__step"></div>
+            <span class="progress-indicator__label">Step 2 / 5</span>
+        </div>
+
+        <span class="badge badge--default" data-status-badge>Not Started</span>
     </header>
 
-    <!-- Context Header -->
+    <!-- ============================================================
+       CONTEXT HEADER
+       ============================================================ -->
     <section class="context-header">
-        <h1>Define Your Core Architecture</h1>
-        <p class="subtext">Establish the foundational data structures and relationships before writing code.</p>
+        <h1 class="context-header__headline">Design System Foundation</h1>
+        <p class="context-header__subtext">Every element on this page follows the same rules. This is the structural
+            scaffold — no product features, only the system.</p>
     </section>
 
-    <!-- Main Layout -->
-    <main class="main-container">
-        
-        <!-- Primary Workspace (70%) -->
-        <section class="primary-workspace">
-            
-            <div class="card">
-                <h2 class="card-title">Project Configuration</h2>
-                <div class="input-group">
-                    <label for="project-name">Project Name</label>
-                    <input type="text" id="project-name" placeholder="e.g. SaaS Dashboard v1">
+    <!-- ============================================================
+       WORKSPACE LAYOUT (70 / 30)
+       ============================================================ -->
+    <main class="workspace-layout">
+
+        <!-- Primary Workspace -->
+        <div class="primary-workspace">
+
+            <!-- Card Grid -->
+            <div class="flex flex-col gap-sm">
+
+                <div class="card">
+                    <h3 class="card__title">Color Tokens</h3>
+                    <p class="card__description">Background #F7F6F3, Text #111111, Accent #8B0000, plus muted green and
+                        amber for states. Maximum four colors across the entire system.</p>
                 </div>
-                <div class="input-group">
-                    <label for="tech-stack">Technology Stack</label>
-                    <select id="tech-stack">
-                        <option value="react">React</option>
-                        <option value="vue">Vue</option>
-                        <option value="angular">Angular</option>
-                    </select>
+
+                <div class="card">
+                    <h3 class="card__title">Typography Scale</h3>
+                    <p class="card__description">Serif headings at generous sizes with tight leading. Sans-serif body at
+                        16–18px with 1.6–1.8 line-height. All text blocks capped at 720px width.</p>
                 </div>
+
+                <div class="card">
+                    <h3 class="card__title">Spacing System</h3>
+                    <p class="card__description">Five values only: 8px, 16px, 24px, 40px, 64px. No exceptions.
+                        Whitespace is part of design, not an afterthought.</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="card__title">Component Rules</h3>
+                    <p class="card__description">Same border-radius, same hover timing, same focus ring everywhere.
+                        Cards use subtle borders, no drop shadows. Inputs use clean borders with clear focus state.</p>
+                    <div class="card__footer">
+                        <button class="btn btn-primary btn-sm">Primary</button>
+                        <button class="btn btn-secondary btn-sm">Secondary</button>
+                    </div>
+                </div>
+
             </div>
+        </div>
 
-            <div class="card">
-                <h2 class="card-title">Database Design</h2>
-                 <p class="card-description">Define your initial schema models below. Keep it simple for the MVP.</p>
-                 <div class="input-group">
-                    <label for="schema-model">Model Name</label>
-                    <input type="text" id="schema-model" placeholder="User">
-                 </div>
-                 <div class="actions">
-                     <button class="btn btn-secondary">Add Field</button>
-                     <button class="btn btn-primary">Save Model</button>
-                 </div>
-            </div>
-
-        </section>
-
-        <!-- Secondary Panel (30%) -->
+        <!-- Secondary Panel -->
         <aside class="secondary-panel">
-            <div class="step-explanation">
-                <h3>Why this step?</h3>
-                <p>A solid data foundation prevents costly refactors later. Define your entities clearly.</p>
-            </div>
-            
-            <div class="prompt-box">
-                <label>AI Prompt</label>
-                <textarea readonly>Create a User model with ID, email, password_hash, and role fields.</textarea>
-                <button class="btn btn-outline-sm">Copy Prompt</button>
-            </div>
+            <div class="secondary-panel__inner">
 
-            <div class="panel-actions">
-                <button class="btn btn-full btn-blue">Build in Lovable</button>
-                <button class="btn btn-full btn-green">It Worked</button>
-                <button class="btn btn-full btn-amber">Report Error</button>
-                <button class="btn btn-full btn-outline">Add Screenshot</button>
+                <div class="secondary-panel__section">
+                    <h4 class="secondary-panel__section-title">Step Explanation</h4>
+                    <p class="body-text caption">This scaffold demonstrates the four-zone layout: Top Bar, Context
+                        Header, Workspace with Side Panel, and Proof Footer.</p>
+                </div>
+
+                <div class="secondary-panel__section">
+                    <h4 class="secondary-panel__section-title">Prompt</h4>
+                    <div class="prompt-box" id="prompt-text">Create a layout with a sticky top bar, a context header
+                        with a serif headline, a 70/30 workspace split, and a persistent proof footer with checkboxes.
+                    </div>
+                    <div class="mt-xs">
+                        <button class="btn btn-secondary btn-sm" data-copy-target="prompt-text">Copy</button>
+                    </div>
+                </div>
+
+                <div class="secondary-panel__section">
+                    <h4 class="secondary-panel__section-title">Actions</h4>
+                    <div class="flex flex-col gap-xs">
+                        <button class="btn btn-secondary btn-sm w-full">Build in Lovable</button>
+                        <button class="btn btn-success btn-sm w-full">It Worked</button>
+                        <button class="btn btn-secondary btn-sm w-full">Error</button>
+                        <button class="btn btn-secondary btn-sm w-full">Add Screenshot</button>
+                    </div>
+                </div>
+
             </div>
         </aside>
 
     </main>
 
-    <!-- Proof Footer -->
+    <!-- ============================================================
+       PROOF FOOTER
+       ============================================================ -->
     <footer class="proof-footer">
-        <div class="proof-item">
-            <input type="checkbox" id="proof-ui">
-            <label for="proof-ui">UI Built</label>
+        <div class="checklist-item">
+            <div class="checklist-item__checkbox"></div>
+            <span class="checklist-item__label">UI Built</span>
         </div>
-        <div class="proof-item">
-            <input type="checkbox" id="proof-logic">
-            <label for="proof-logic">Logic Working</label>
+        <div class="checklist-item">
+            <div class="checklist-item__checkbox"></div>
+            <span class="checklist-item__label">Logic Working</span>
         </div>
-        <div class="proof-item">
-            <input type="checkbox" id="proof-test">
-            <label for="proof-test">Test Passed</label>
+        <div class="checklist-item">
+            <div class="checklist-item__checkbox"></div>
+            <span class="checklist-item__label">Test Passed</span>
         </div>
-        <div class="proof-item">
-            <input type="checkbox" id="proof-deploy">
-            <label for="proof-deploy">Deployed</label>
+        <div class="checklist-item">
+            <div class="checklist-item__checkbox"></div>
+            <span class="checklist-item__label">Deployed</span>
         </div>
     </footer>
 
+    <!-- Interaction Logic -->
+    <script src="design-system.js"></script>
+
 </body>
+
 </html>
