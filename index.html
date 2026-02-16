@@ -75,6 +75,8 @@
             Check: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
             Download: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
             Copy: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>,
+            ClipboardList: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg>,
+            Rocket: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09Z" /><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2Z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 3 0 3 0" /><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-3 0-3" /></svg>,
         };
 
         /* ---- Router ---- */
@@ -130,7 +132,13 @@
            ============================================================ */
         function PracticePage({ onAnalyze }) {
             const [company, setCompany] = useState(''); const [role, setRole] = useState(''); const [jd, setJd] = useState('');
-            const handleSubmit = () => { if (!jd.trim()) { alert('Please paste a job description.'); return } const result = runAnalysis(company, role, jd); saveToHistory(result); onAnalyze(result); nav('/dashboard/assessments') }
+            const [warn, setWarn] = useState('');
+            const handleSubmit = () => {
+                if (!jd.trim()) { setWarn('Please paste a job description.'); return }
+                if (jd.trim().length < 200) { setWarn('This JD is too short to analyze deeply. Paste full JD for better output.'); }
+                else { setWarn(''); }
+                const result = runAnalysis(company, role, jd); saveToHistory(result); onAnalyze(result); nav('/dashboard/assessments');
+            }
             return (<div className="max-w-2xl mx-auto space-y-6">
                 <div><h1 className="text-2xl font-bold text-text">JD Analyzer</h1><p className="mt-1 text-text-muted">Paste a job description to get a personalized preparation plan.</p></div>
                 <Card>
@@ -138,6 +146,7 @@
                         <div><label className="block text-sm font-medium text-text mb-1">Company Name <span className="text-text-muted">(optional)</span></label><input value={company} onChange={e => setCompany(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors" placeholder="e.g. Google, Infosys, TCS" /></div>
                         <div><label className="block text-sm font-medium text-text mb-1">Role <span className="text-text-muted">(optional)</span></label><input value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors" placeholder="e.g. SDE-1, Frontend Developer" /></div>
                         <div><label className="block text-sm font-medium text-text mb-1">Job Description <span className="text-red-500">*</span></label><textarea value={jd} onChange={e => setJd(e.target.value)} rows={10} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-text text-sm focus:outline-none focus:border-primary-400 transition-colors resize-y" placeholder="Paste the full job description here..." /></div>
+                        {warn && <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700"><span className="mt-0.5">⚠</span><span>{warn}</span></div>}
                         <button onClick={handleSubmit} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer"><I.Search className="w-4 h-4" />Analyze &amp; Generate Plan</button>
                     </div>
                 </Card>
@@ -159,13 +168,14 @@
             const allSkills = Object.values(result.extractedSkills).flat();
             const [confMap, setConfMap] = useState(() => result.skillConfidenceMap || Object.fromEntries(allSkills.map(s => [s, 'practice'])));
 
-            const liveScore = calcLiveScore(result.readinessScore, confMap);
+            const liveScore = calcFinalScore(result.baseScore, confMap);
 
             const toggleSkill = (skill) => {
                 const next = { ...confMap, [skill]: confMap[skill] === 'know' ? 'practice' : 'know' };
                 setConfMap(next);
-                const updated = { ...result, skillConfidenceMap: next };
-                updateHistoryEntry(result.id, { skillConfidenceMap: next });
+                const newFinal = calcFinalScore(result.baseScore, next);
+                const updated = { ...result, skillConfidenceMap: next, finalScore: newFinal };
+                updateHistoryEntry(result.id, { skillConfidenceMap: next, finalScore: newFinal });
                 if (onResultUpdate) onResultUpdate(updated);
             };
 
@@ -180,7 +190,7 @@
                 a.click(); URL.revokeObjectURL(a.href);
             };
 
-            const { extractedSkills: sk, checklist, plan, questions, company, role } = result;
+            const { extractedSkills: sk, checklist, plan7Days, questions, company, role } = result;
             return (<div className="space-y-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                     <div><h1 className="text-2xl font-bold text-text">Analysis Results</h1><p className="mt-1 text-text-muted">{company && role ? company + ' — ' + role : company || role || 'General Analysis'}</p></div>
@@ -205,16 +215,16 @@
                 </Card>}
 
                 {/* Round Map Timeline */}
-                {result.roundMap && <Card>
+                {result.roundMapping && result.roundMapping.length > 0 && <Card>
                     <CardTitle>Expected Interview Rounds</CardTitle>
                     <div className="relative pl-6">
                         <div className="absolute left-[9px] top-1 bottom-1 w-0.5 bg-primary-100"></div>
-                        {result.roundMap.map((r, i) => (
+                        {result.roundMapping.map((r, i) => (
                             <div key={i} className="relative mb-6 last:mb-0">
                                 <div className={"absolute -left-6 top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold " + (i === 0 ? 'bg-primary-500 border-primary-500 text-white' : 'bg-white border-primary-300 text-primary-500')}>{i + 1}</div>
-                                <h4 className="text-sm font-semibold text-text">{r.round}</h4>
-                                <p className="text-sm text-text-muted mt-0.5">{r.desc}</p>
-                                <p className="text-xs text-text-muted mt-1.5 bg-background rounded-lg px-3 py-2 border border-border italic">{r.why}</p>
+                                <h4 className="text-sm font-semibold text-text">{r.roundTitle}</h4>
+                                <div className="flex flex-wrap gap-1 mt-1">{(r.focusAreas || []).map(f => <Badge key={f} color="gray">{f}</Badge>)}</div>
+                                <p className="text-xs text-text-muted mt-1.5 bg-background rounded-lg px-3 py-2 border border-border italic">{r.whyItMatters}</p>
                             </div>
                         ))}
                     </div>
@@ -223,7 +233,7 @@
                 {/* Skills with toggles */}
                 <Card><CardTitle>Key Skills Extracted</CardTitle>
                     <p className="text-xs text-text-muted mb-3">Click a skill to toggle your confidence. Score updates live.</p>
-                    <div className="space-y-3">{Object.entries(sk).map(([cat, tags]) => (<div key={cat}><p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1.5">{cat}</p><div className="flex flex-wrap gap-1.5">{tags.map(t => {
+                    <div className="space-y-3">{Object.entries(sk).filter(([, tags]) => tags.length > 0).map(([cat, tags]) => (<div key={cat}><p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1.5">{CAT_LABELS[cat] || cat}</p><div className="flex flex-wrap gap-1.5">{tags.map(t => {
                         const know = confMap[t] === 'know';
                         return <button key={t} onClick={() => toggleSkill(t)} className={"inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer transition-all duration-150 " + (know ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100')}>{know ? <I.Check className="w-3 h-3" /> : null}{t}{!know && <span className="text-amber-400 text-[10px]">⚡</span>}</button>;
                     })}</div></div>))}</div>
@@ -232,7 +242,7 @@
 
                 {/* Export bar */}
                 <div className="flex flex-wrap items-center gap-2">
-                    <CopyBtn label="Copy 7-day plan" onClick={() => copyText(formatPlanText(plan))} />
+                    <CopyBtn label="Copy 7-day plan" onClick={() => copyText(formatPlanText(plan7Days))} />
                     <CopyBtn label="Copy checklist" onClick={() => copyText(formatChecklistText(checklist))} />
                     <CopyBtn label="Copy questions" onClick={() => copyText(formatQuestionsText(questions))} />
                     <button onClick={downloadTxt} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-primary-200 bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors cursor-pointer"><I.Download className="w-3.5 h-3.5" />Download as TXT</button>
@@ -240,12 +250,12 @@
 
                 {/* Checklist */}
                 <Card><CardTitle>Round-wise Preparation Checklist</CardTitle>
-                    <div className="space-y-5">{checklist.map((r, ri) => (<div key={ri}><h4 className="text-sm font-semibold text-text mb-2">{r.round}</h4><ul className="space-y-1.5">{r.items.map((it, ii) => (<li key={ii} className="flex items-start gap-2 text-sm text-text-muted"><span className="mt-0.5 w-4 h-4 rounded border border-border flex-shrink-0 flex items-center justify-center text-xs">&#x25A2;</span>{it}</li>))}</ul></div>))}</div>
+                    <div className="space-y-5">{checklist.map((r, ri) => (<div key={ri}><h4 className="text-sm font-semibold text-text mb-2">{r.roundTitle}</h4><ul className="space-y-1.5">{r.items.map((it, ii) => (<li key={ii} className="flex items-start gap-2 text-sm text-text-muted"><span className="mt-0.5 w-4 h-4 rounded border border-border flex-shrink-0 flex items-center justify-center text-xs">&#x25A2;</span>{it}</li>))}</ul></div>))}</div>
                 </Card>
 
                 {/* 7-day plan */}
                 <Card><CardTitle>7-Day Preparation Plan</CardTitle>
-                    <div className="space-y-4">{plan.map((d, di) => (<div key={di} className="border-l-2 border-primary-200 pl-4"><h4 className="text-sm font-semibold text-text">{d.day}: {d.title}</h4><ul className="mt-1 space-y-1">{d.tasks.map((t, ti) => (<li key={ti} className="text-sm text-text-muted flex items-start gap-1.5"><span className="text-primary-400 mt-0.5">•</span>{t}</li>))}</ul></div>))}</div>
+                    <div className="space-y-4">{plan7Days.map((d, di) => (<div key={di} className="border-l-2 border-primary-200 pl-4"><h4 className="text-sm font-semibold text-text">{d.day}: {d.focus}</h4><ul className="mt-1 space-y-1">{d.tasks.map((t, ti) => (<li key={ti} className="text-sm text-text-muted flex items-start gap-1.5"><span className="text-primary-400 mt-0.5">•</span>{t}</li>))}</ul></div>))}</div>
                 </Card>
 
                 {/* Questions */}
@@ -267,14 +277,19 @@
            ============================================================ */
         function ResourcesPage({ onSelect }) {
             const [history, setHistory] = useState(loadHistory());
+            const corrupted = getCorruptedCount();
             const handleDelete = (id) => { deleteHistoryEntry(id); setHistory(loadHistory()) };
-            if (!history.length) return (<div className="text-center py-20"><I.BookOpen className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">No history yet</h3><p className="text-sm text-text-muted mb-4">Analyzed JDs will appear here after you run an analysis.</p><button onClick={() => nav('/dashboard/practice')} className="px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Analyze a JD</button></div>);
+            if (!history.length && !corrupted) return (<div className="text-center py-20"><I.BookOpen className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">No history yet</h3><p className="text-sm text-text-muted mb-4">Analyzed JDs will appear here after you run an analysis.</p><button onClick={() => nav('/dashboard/practice')} className="px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Analyze a JD</button></div>);
+            const getScore = (e) => e.finalScore !== undefined ? e.finalScore : (e.baseScore || e.readinessScore || 0);
             return (<div className="space-y-6">
                 <div><h1 className="text-2xl font-bold text-text">Analysis History</h1><p className="mt-1 text-text-muted">{history.length} saved {history.length === 1 ? 'entry' : 'entries'}</p></div>
-                <div className="space-y-3">{history.map(e => (<div key={e.id} className="bg-white border border-border rounded-xl p-4 flex items-center justify-between gap-4 hover:border-primary-300 transition-colors cursor-pointer" onClick={() => { onSelect(e); nav('/dashboard/assessments') }}>
-                    <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-text truncate">{e.company || 'Untitled'}{e.role ? ' — ' + e.role : ''}</p><p className="text-xs text-text-muted mt-0.5">{new Date(e.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p></div>
-                    <div className="flex items-center gap-3"><Badge color={e.readinessScore >= 70 ? 'green' : e.readinessScore >= 50 ? 'amber' : 'primary'}>{e.readinessScore}/100</Badge><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }} className="p-1 text-text-muted hover:text-red-500 transition-colors cursor-pointer"><I.Trash className="w-4 h-4" /></button></div>
-                </div>))}</div>
+                {corrupted > 0 && <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700"><span className="mt-0.5">⚠</span><span>{corrupted === 1 ? 'One saved entry' : corrupted + ' saved entries'} couldn't be loaded. Create a new analysis.</span></div>}
+                <div className="space-y-3">{history.map(e => {
+                    const sc = getScore(e); return (<div key={e.id} className="bg-white border border-border rounded-xl p-4 flex items-center justify-between gap-4 hover:border-primary-300 transition-colors cursor-pointer" onClick={() => { onSelect(e); nav('/dashboard/assessments') }}>
+                        <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-text truncate">{e.company || 'Untitled'}{e.role ? ' — ' + e.role : ''}</p><p className="text-xs text-text-muted mt-0.5">{new Date(e.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p></div>
+                        <div className="flex items-center gap-3"><Badge color={sc >= 70 ? 'green' : sc >= 50 ? 'amber' : 'primary'}>{sc}/100</Badge><button onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }} className="p-1 text-text-muted hover:text-red-500 transition-colors cursor-pointer"><I.Trash className="w-4 h-4" /></button></div>
+                    </div>)
+                })}</div>
             </div>)
         }
 
@@ -283,12 +298,13 @@
            ============================================================ */
         function DashboardPage({ latestResult }) {
             const history = loadHistory(); const latest = latestResult || history[0];
+            const getScore = (e) => e.finalScore !== undefined ? e.finalScore : (e.baseScore || 0);
             return (<div className="space-y-6">
                 <div><h1 className="text-2xl font-bold text-text flex items-center gap-2">Welcome back <I.Flame className="w-5 h-5 text-amber-500" /></h1><p className="mt-1 text-text-muted">Here's your placement preparation overview.</p></div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="flex flex-col items-center justify-center">
                         <CardTitle>Readiness Score</CardTitle>
-                        <ScoreRing score={latest ? latest.readinessScore : 0} size={180} />
+                        <ScoreRing score={latest ? getScore(latest) : 0} size={180} />
                         <p className="text-sm text-text-muted mt-3">{latest ? 'Based on latest analysis' : 'Analyze a JD to see your score'}</p>
                         {!latest && <button onClick={() => nav('/dashboard/practice')} className="mt-3 px-5 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer">Analyze Now</button>}
                     </Card>
@@ -296,13 +312,13 @@
                         <CardTitle>Quick Stats</CardTitle>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center border-b border-border pb-3"><span className="text-sm text-text-muted">Total Analyses</span><span className="text-lg font-bold text-text">{history.length}</span></div>
-                            <div className="flex justify-between items-center border-b border-border pb-3"><span className="text-sm text-text-muted">Avg Score</span><span className="text-lg font-bold text-text">{history.length ? Math.round(history.reduce((a, e) => a + e.readinessScore, 0) / history.length) : 0}</span></div>
-                            <div className="flex justify-between items-center"><span className="text-sm text-text-muted">Best Score</span><span className="text-lg font-bold text-text">{history.length ? Math.max(...history.map(e => e.readinessScore)) : 0}</span></div>
+                            <div className="flex justify-between items-center border-b border-border pb-3"><span className="text-sm text-text-muted">Avg Score</span><span className="text-lg font-bold text-text">{history.length ? Math.round(history.reduce((a, e) => a + getScore(e), 0) / history.length) : 0}</span></div>
+                            <div className="flex justify-between items-center"><span className="text-sm text-text-muted">Best Score</span><span className="text-lg font-bold text-text">{history.length ? Math.max(...history.map(e => getScore(e))) : 0}</span></div>
                         </div>
                     </Card>
                     {latest && <Card className="lg:col-span-2">
                         <CardTitle>Latest: {latest.company || 'Analysis'}{latest.role ? ' — ' + latest.role : ''}</CardTitle>
-                        <div className="flex flex-wrap gap-1.5 mb-3">{Object.values(latest.extractedSkills).flat().slice(0, 12).map(s => <Badge key={s}>{s}</Badge>)}</div>
+                        <div className="flex flex-wrap gap-1.5 mb-3">{Object.values(latest.extractedSkills).flat().filter(Boolean).slice(0, 12).map(s => <Badge key={s}>{s}</Badge>)}</div>
                         <button onClick={() => nav('/dashboard/assessments')} className="px-4 py-2 rounded-xl bg-primary-50 text-primary-600 text-sm font-medium hover:bg-primary-100 transition-colors cursor-pointer">View Full Results →</button>
                     </Card>}
                 </div>
@@ -315,9 +331,124 @@
         function ProfilePage() { return (<div className="space-y-6"><div><h1 className="text-2xl font-bold text-text">Profile</h1><p className="mt-1 text-text-muted">Manage your account and preferences.</p></div><Card className="text-center py-12"><I.User className="w-12 h-12 text-border mx-auto mb-4" /><h3 className="text-lg font-semibold text-text mb-1">Profile settings</h3><p className="text-sm text-text-muted">Coming soon.</p></Card></div>) }
 
         /* ============================================================
+           TEST CHECKLIST PAGE  —  /prp/07-test
+           ============================================================ */
+        const TEST_STORAGE_KEY = 'kodnest_test_checklist';
+        const TEST_ITEMS = [
+            { id: 'jd-required', label: 'JD required validation works', hint: 'Leave the JD field empty and click Analyze. You should see an amber warning and the form should NOT submit.' },
+            { id: 'short-jd', label: 'Short JD warning shows for <200 chars', hint: 'Paste a JD shorter than 200 characters and submit. An amber warning should appear but analysis should still run.' },
+            { id: 'skill-groups', label: 'Skills extraction groups correctly', hint: 'Paste a real JD containing React, Python, SQL, AWS etc. Check the Results page — skills should be grouped under Web, Languages, Data, Cloud etc.' },
+            { id: 'round-mapping', label: 'Round mapping changes based on company + skills', hint: 'Run analysis for Google (Enterprise) and again for a random startup name. The "Expected Interview Rounds" section should show different round structures.' },
+            { id: 'deterministic-score', label: 'Score calculation is deterministic', hint: 'Run the same analysis twice (same company, role, JD). Both analyses should produce an identical base score.' },
+            { id: 'toggle-score', label: 'Skill toggles update score live', hint: 'On Results, click a skill to toggle it to "I know this." The readiness score ring should update immediately.' },
+            { id: 'persist-refresh', label: 'Changes persist after refresh', hint: 'Toggle skills, then refresh the browser. Go to History → click the entry. Your toggle selections and updated score should be preserved.' },
+            { id: 'history-crud', label: 'History saves and loads correctly', hint: 'Run 2+ analyses. Go to History. Both entries should appear with correct company, date, and score. Delete one — it should vanish.' },
+            { id: 'export-copy', label: 'Export buttons copy the correct content', hint: 'Click "Copy 7-day plan" on Results. Paste into a text editor. The full plan should be there. Repeat for checklist and questions.' },
+            { id: 'no-errors', label: 'No console errors on core pages', hint: 'Open browser DevTools (F12 → Console). Navigate through Dashboard, Analyzer, Results, History. There should be zero red errors.' },
+        ];
+
+        function loadTestChecklist() {
+            try { const raw = localStorage.getItem(TEST_STORAGE_KEY); if (!raw) return {}; const parsed = JSON.parse(raw); return typeof parsed === 'object' && parsed !== null ? parsed : {}; } catch { return {}; }
+        }
+        function saveTestChecklist(map) { localStorage.setItem(TEST_STORAGE_KEY, JSON.stringify(map)); }
+        function allTestsPassed(map) { return TEST_ITEMS.every(t => map[t.id] === true); }
+
+        function TestChecklistPage() {
+            const [checks, setChecks] = useState(loadTestChecklist);
+            const [openHint, setOpenHint] = useState(null);
+            const passed = TEST_ITEMS.filter(t => checks[t.id]).length;
+            const total = TEST_ITEMS.length;
+            const allDone = passed === total;
+
+            const toggle = (id) => { const next = { ...checks, [id]: !checks[id] }; setChecks(next); saveTestChecklist(next); };
+            const reset = () => { setChecks({}); saveTestChecklist({}); setOpenHint(null); };
+
+            return (<div className="max-w-2xl mx-auto space-y-6">
+                <div><h1 className="text-2xl font-bold text-text flex items-center gap-2"><I.ClipboardList className="w-6 h-6 text-primary-500" />Test Checklist</h1><p className="mt-1 text-text-muted">Manually verify each item before shipping.</p></div>
+
+                {/* Summary bar */}
+                <Card>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-lg font-bold text-text">Tests Passed: <span className={allDone ? 'text-emerald-600' : 'text-primary-500'}>{passed} / {total}</span></p>
+                            {!allDone && <p className="text-sm text-amber-600 mt-1 flex items-center gap-1"><span>⚠</span>Fix issues before shipping.</p>}
+                            {allDone && <p className="text-sm text-emerald-600 mt-1 flex items-center gap-1"><I.Check className="w-4 h-4" />All tests passed — ready to ship!</p>}
+                        </div>
+                        <button onClick={reset} className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-text-muted hover:bg-primary-50 hover:text-primary-600 transition-colors cursor-pointer">Reset checklist</button>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="mt-3 w-full h-2 bg-border/40 rounded-full overflow-hidden"><div className={"h-full rounded-full transition-all duration-500 " + (allDone ? 'bg-emerald-500' : 'bg-primary-400')} style={{ width: (passed / total * 100) + '%' }}></div></div>
+                </Card>
+
+                {/* Test items */}
+                <Card>
+                    <div className="divide-y divide-border">
+                        {TEST_ITEMS.map((t, idx) => (
+                            <div key={t.id} className="py-3 first:pt-0 last:pb-0">
+                                <div className="flex items-start gap-3">
+                                    <button onClick={() => toggle(t.id)} className={"mt-0.5 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer " + (checks[t.id] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-border hover:border-primary-400')}>
+                                        {checks[t.id] && <I.Check className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={"text-sm font-medium transition-colors " + (checks[t.id] ? 'text-text-muted line-through' : 'text-text')}>{idx + 1}. {t.label}</p>
+                                        <button onClick={() => setOpenHint(openHint === t.id ? null : t.id)} className="mt-1 text-xs text-primary-500 hover:text-primary-600 cursor-pointer transition-colors">How to test {openHint === t.id ? '▲' : '▼'}</button>
+                                        {openHint === t.id && <p className="mt-1.5 text-xs text-text-muted bg-primary-50/50 border border-primary-100 rounded-lg px-3 py-2 leading-relaxed">{t.hint}</p>}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+
+                {/* Navigation hint */}
+                <div className="text-center">
+                    {allDone
+                        ? <button onClick={() => nav('/prp/08-ship')} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors cursor-pointer"><I.Rocket className="w-4 h-4" />Go to Ship →</button>
+                        : <p className="text-sm text-text-muted">Complete all {total} tests to unlock the Ship page.</p>
+                    }
+                </div>
+            </div>)
+        }
+
+        /* ============================================================
+           SHIP PAGE  —  /prp/08-ship  (locked until checklist complete)
+           ============================================================ */
+        function ShipPage() {
+            const checks = loadTestChecklist();
+            const passed = TEST_ITEMS.filter(t => checks[t.id]).length;
+            const total = TEST_ITEMS.length;
+            const locked = !allTestsPassed(checks);
+
+            if (locked) return (<div className="max-w-2xl mx-auto text-center py-20 space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center"><I.Rocket className="w-10 h-10 text-amber-400" /></div>
+                <h1 className="text-2xl font-bold text-text">Ship Locked</h1>
+                <p className="text-text-muted max-w-md mx-auto">You must pass all {total} test checklist items before you can ship. Currently {passed}/{total} passed.</p>
+                <div className="w-64 mx-auto h-2 bg-border/40 rounded-full overflow-hidden"><div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: (passed / total * 100) + '%' }}></div></div>
+                <button onClick={() => nav('/prp/07-test')} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer"><I.ClipboardList className="w-4 h-4" />Go to Test Checklist</button>
+            </div>);
+
+            return (<div className="max-w-2xl mx-auto text-center py-20 space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-full bg-emerald-50 flex items-center justify-center animate-pulse"><I.Rocket className="w-10 h-10 text-emerald-500" /></div>
+                <h1 className="text-2xl font-bold text-text">Ready to Ship 🚀</h1>
+                <p className="text-text-muted max-w-md mx-auto">All {total} tests passed. The Placement Readiness Platform is verified and ready for deployment.</p>
+                <Card className="text-left">
+                    <CardTitle>Ship Summary</CardTitle>
+                    <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-emerald-600"><I.Check className="w-4 h-4" /><span>Input validation & edge cases verified</span></div>
+                        <div className="flex items-center gap-2 text-emerald-600"><I.Check className="w-4 h-4" /><span>Skill extraction & scoring engine stable</span></div>
+                        <div className="flex items-center gap-2 text-emerald-600"><I.Check className="w-4 h-4" /><span>Data persistence & history working</span></div>
+                        <div className="flex items-center gap-2 text-emerald-600"><I.Check className="w-4 h-4" /><span>Export & UI interactions smooth</span></div>
+                        <div className="flex items-center gap-2 text-emerald-600"><I.Check className="w-4 h-4" /><span>No console errors on core pages</span></div>
+                    </div>
+                </Card>
+                <Badge color="green">✓ Shipped</Badge>
+            </div>)
+        }
+
+        /* ============================================================
            DASHBOARD LAYOUT
            ============================================================ */
-        const sideNav = [{ path: '/dashboard', icon: 'LayoutDashboard', label: 'Dashboard', exact: true }, { path: '/dashboard/practice', icon: 'Search', label: 'Analyzer' }, { path: '/dashboard/assessments', icon: 'ClipboardCheck', label: 'Results' }, { path: '/dashboard/resources', icon: 'BookOpen', label: 'History' }, { path: '/dashboard/profile', icon: 'User', label: 'Profile' }];
+        const sideNav = [{ path: '/dashboard', icon: 'LayoutDashboard', label: 'Dashboard', exact: true }, { path: '/dashboard/practice', icon: 'Search', label: 'Analyzer' }, { path: '/dashboard/assessments', icon: 'ClipboardCheck', label: 'Results' }, { path: '/dashboard/resources', icon: 'BookOpen', label: 'History' }, { path: '/dashboard/profile', icon: 'User', label: 'Profile' }, { path: '/prp/07-test', icon: 'ClipboardList', label: 'Test Checklist' }, { path: '/prp/08-ship', icon: 'Rocket', label: 'Ship' }];
         function Layout({ route, children }) {
             const lbl = sideNav.find(i => i.exact ? route === i.path : route.startsWith(i.path))?.label || 'Dashboard';
             return (<div className="min-h-screen flex">
@@ -348,6 +479,8 @@
             else if (route === '/dashboard/assessments') page = <AssessmentsPage result={result} onResultUpdate={setResult} />;
             else if (route === '/dashboard/resources') page = <ResourcesPage onSelect={handleSelect} />;
             else if (route === '/dashboard/profile') page = <ProfilePage />;
+            else if (route === '/prp/07-test') page = <TestChecklistPage />;
+            else if (route === '/prp/08-ship') page = <ShipPage />;
             else page = <DashboardPage latestResult={result} />;
             return <Layout route={route}>{page}</Layout>;
         }
