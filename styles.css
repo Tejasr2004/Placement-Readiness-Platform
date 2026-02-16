@@ -1,0 +1,322 @@
+/* 
+   KodNest Premium Build System
+   Design Philosophy: Calm, Intentional, Coherent, Confident
+*/
+
+:root {
+    /* Color System */
+    --bg-color: #F7F6F3;
+    --text-primary: #111111;
+    --text-secondary: #555555;
+    --accent: #8B0000;
+    --accent-hover: #600000;
+    --success: #4A7A58; /* Muted Green */
+    --warning: #B5840D; /* Muted Amber */
+    --border-color: #E0E0E0;
+    --card-bg: #FFFFFF;
+    
+    /* Spacing System */
+    --space-xs: 8px;
+    --space-sm: 16px;
+    --space-md: 24px;
+    --space-lg: 40px;
+    --space-xl: 64px;
+
+    /* Typography */
+    --font-heading: 'Lora', serif;
+    --font-body: 'Inter', sans-serif;
+    
+    /* Animation */
+    --transition-speed: 200ms;
+    --transition-ease: ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Typography Basics */
+h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+p {
+    margin-bottom: var(--space-sm);
+    max-width: 720px;
+}
+
+/* Utilities */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-speed) var(--transition-ease);
+    border: 1.5px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(139, 0, 0, 0.05); /* Very subtle tint */
+}
+
+.btn-full {
+    width: 100%;
+    margin-bottom: var(--space-xs);
+}
+
+/* Layout Components */
+
+/* Top Bar */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--space-lg);
+    height: 64px;
+    background-color: var(--bg-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.project-name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.progress-indicator {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.status-not-started {
+    background-color: #E0E0E0;
+    color: var(--text-secondary);
+}
+
+/* Context Header */
+.context-header {
+    padding: var(--space-lg) var(--space-lg) var(--space-md);
+    border-bottom: 1px solid transparent; /* Keeps spacing consistent even if border is added later */
+}
+
+.context-header h1 {
+    font-size: 36px;
+    margin-bottom: var(--space-xs);
+}
+
+.context-header .subtext {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    flex: 1;
+    padding: 0 var(--space-lg) var(--space-xl); /* Bottom padding for footer */
+    gap: var(--space-lg);
+}
+
+/* Primary Workspace */
+.primary-workspace {
+    flex: 7;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px; /* Subtle radius */
+    padding: var(--space-md) var(--space-lg);
+    /* No drop shadows as requested */
+}
+
+.card-title {
+    font-size: 22px;
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: var(--space-xs);
+}
+
+.card-description {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+}
+
+/* Inputs */
+.input-group {
+    margin-bottom: var(--space-md);
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+input[type="text"], select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    transition: border-color var(--transition-speed);
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--text-primary); /* Strong focus state */
+}
+
+/* Secondary Panel */
+.secondary-panel {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    border-left: 1px solid var(--border-color);
+    padding-left: var(--space-md);
+}
+
+.step-explanation h3 {
+    font-size: 18px;
+    margin-bottom: var(--space-xs);
+}
+
+.step-explanation p {
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.prompt-box {
+    background-color: #F0EEE9; /* Slightly darker than bg */
+    padding: var(--space-sm);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.prompt-box label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+}
+
+.prompt-box textarea {
+    background-color: transparent;
+    border: none;
+    font-family: 'Courier New', monospace; /* Code-like feel */
+    font-size: 13px;
+    resize: none;
+    min-height: 80px;
+    margin-bottom: var(--space-xs);
+}
+
+/* Panel Actions */
+.btn-blue { background-color: #2F4F4F; color: white; border: none; } /* Muted slate */
+.btn-green { background-color: var(--success); color: white; border: none; }
+.btn-amber { background-color: var(--warning); color: white; border: none; }
+.btn-outline { background-color: transparent; border: 1px solid var(--text-secondary); color: var(--text-primary); }
+
+.btn-outline-sm {
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--text-secondary);
+    background: transparent;
+    border-radius: 3px;
+}
+
+/* Proof Footer */
+.proof-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--text-primary);
+    color: white;
+    padding: var(--space-sm) var(--space-lg);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    z-index: 100;
+}
+
+.proof-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.proof-item input[type="checkbox"] {
+    accent-color: var(--success);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.proof-item label {
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
