@@ -1,5 +1,22 @@
 # KodNest Placement Readiness Platform
 
+
+
+
+Visit The Working Website Here
+
+
+
+
+placement-readiness-platform-oocusd1dl-tejas-projects-f3908b77.vercel.app
+
+
+
+
+
+
+
+
 A standalone, offline-first web tool that analyzes job descriptions and generates personalized placement preparation plans — built as a single HTML + JS application with zero external dependencies at runtime.
 
 ## ✨ Features
@@ -82,3 +99,4 @@ PLACEMENT READINESS PLATFORM/
 ## 📝 License
 
 Built as part of the KodNest Placement Readiness Program.
+
